@@ -8,6 +8,8 @@ const Polyline = require('./Polyline');
 const Polyline3d = require('./Polyline3d');
 const Face = require('./Face');
 const Point = require('./Point');
+const Spline = require('./Spline')
+const Ellipse = require('./Ellipse');
 
 class Drawing
 {
@@ -36,12 +38,12 @@ class Drawing
 
         this.setActiveLayer('0');
     }
-    
-    
+
+
     /**
      * @param {string} name
      * @param {string} description
-     * @param {array} elements - if elem > 0 it is a line, if elem < 0 it is gap, if elem == 0.0 it is a 
+     * @param {array} elements - if elem > 0 it is a line, if elem < 0 it is gap, if elem == 0.0 it is a
      */
     addLineType(name, description, elements)
     {
@@ -54,7 +56,7 @@ class Drawing
         this.layers[name] = new Layer(name, colorNumber, lineTypeName);
         return this;
     }
-    
+
     setActiveLayer(name)
     {
         this.activeLayer = this.layers[name];
@@ -72,7 +74,7 @@ class Drawing
         this.activeLayer.addShape(new Point(x, y));
         return this;
     }
-    
+
     drawRect(x1, y1, x2, y2)
     {
         this.activeLayer.addShape(new Line(x1, y1, x2, y1));
@@ -86,8 +88,8 @@ class Drawing
      * @param {number} x1 - Center x
      * @param {number} y1 - Center y
      * @param {number} r - radius
-     * @param {number} startAngle - degree 
-     * @param {number} endAngle - degree 
+     * @param {number} startAngle - degree
+     * @param {number} endAngle - degree
      */
     drawArc(x1, y1, r, startAngle, endAngle)
     {
@@ -154,6 +156,34 @@ class Drawing
     setTrueColor(trueColor)
     {
         this.activeLayer.setTrueColor(trueColor);
+        return this;
+    }
+
+    /**
+     * Draw a spline.
+     * @param {[Array]} controlPoints - Array of control points like [ [x1, y1], [x2, y2]... ]
+     * @param {number} degree - Degree of spline: 2 for quadratic, 3 for cubic. Default is 3
+     * @param {[number]} knots - Knot vector array. If null, will use a uniform knot vector. Default is null
+     * @param {[number]} weights - Control point weights. If provided, must be one weight for each control point. Default is null
+     * @param {[Array]} fitPoints - Array of fit points like [ [x1, y1], [x2, y2]... ]
+     */
+    drawSpline(controlPoints, degree = 3, knots = null, weights = null, fitPoints = []) {
+        this.activeLayer.addShape(new Spline(controlPoints, degree, knots, weights, fitPoints));
+        return this;
+    }
+
+    /**
+     * Draw an ellipse.
+    * @param {number} x1 - Center x
+    * @param {number} y1 - Center y
+    * @param {number} majorAxisX - Endpoint x of major axis, relative to center
+    * @param {number} majorAxisY - Endpoint y of major axis, relative to center
+    * @param {number} axisRatio - Ratio of minor axis to major axis
+    * @param {number} startAngle - Start angle
+    * @param {number} endAngle - End angle
+    */
+    drawEllipse(x1, y1, majorAxisX, majorAxisY, axisRatio, startAngle = 0, endAngle = 2 * Math.PI) {
+        this.activeLayer.addShape(new Ellipse(x1, y1, majorAxisX, majorAxisY, axisRatio, startAngle, endAngle));
         return this;
     }
 
@@ -292,7 +322,7 @@ class Drawing
 
 //AutoCAD Color Index (ACI)
 //http://sub-atomic.com/~moses/acadcolors.html
-Drawing.ACI = 
+Drawing.ACI =
 {
     LAYER : 0,
     RED : 1,
@@ -304,14 +334,14 @@ Drawing.ACI =
     WHITE : 7
 }
 
-Drawing.LINE_TYPES = 
+Drawing.LINE_TYPES =
 [
     {name: 'CONTINUOUS', description: '______', elements: []},
     {name: 'DASHED',    description: '_ _ _ ', elements: [5.0, -5.0]},
     {name: 'DOTTED',    description: '. . . ', elements: [0.0, -5.0]}
 ]
 
-Drawing.LAYERS = 
+Drawing.LAYERS =
 [
     {name: '0',  colorNumber: Drawing.ACI.WHITE, lineTypeName: 'CONTINUOUS'}
 ]
